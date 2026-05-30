@@ -1,0 +1,1821 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Welcome</title>
+<style>
+:root {
+  color-scheme: dark;
+  --cyan: #7df9ff;
+  --blue: #3d6dff;
+  --violet: #a755ff;
+  --pink: #ff4fd8;
+  --green: #7cffb2;
+}
+* {
+  box-sizing: border-box;
+}
+html,
+body {
+  width: 100%;
+  min-height: 100%;
+  margin: 0;
+  overflow-x: hidden;
+  background: #010207;
+  font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+}
+body {
+  min-height: 225vh;
+  overflow-y: auto;
+  color: #f8fbff;
+  scroll-behavior: smooth;
+  --heroFade: 1;
+  --shipReveal: 0;
+  --shipTiltX: 0deg;
+  --shipTiltY: 0deg;
+  --shipRoll: 0deg;
+  --engineBoost: .55;
+}
+canvas,
+.sweep,
+.vignette,
+.grid,
+.centerpiece,
+.copy,
+.marquee {
+  position: fixed;
+  inset: 0;
+}
+#space {
+  z-index: 0;
+  display: block;
+  width: 100vw;
+  height: 100vh;
+}
+.grid {
+  z-index: 1;
+  pointer-events: none;
+  opacity: .32;
+  background:
+    linear-gradient(rgba(125,249,255,.08) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(125,249,255,.08) 1px, transparent 1px);
+  background-size: 7.5vmin 7.5vmin;
+  mask-image: radial-gradient(circle at center, black 0, black 34%, transparent 74%);
+  animation: gridDrift 18s linear infinite;
+}
+.sweep {
+  z-index: 2;
+  pointer-events: none;
+  mix-blend-mode: screen;
+  opacity: .92;
+  background:
+    linear-gradient(105deg, transparent 0%, transparent 28%, rgba(64, 239, 255, .02) 34%, rgba(112, 95, 255, .18) 42%, rgba(255, 87, 216, .1) 48%, transparent 58%, transparent 100%),
+    linear-gradient(72deg, transparent 0%, transparent 38%, rgba(124, 255, 178, .16) 44%, rgba(61, 109, 255, .05) 52%, transparent 64%, transparent 100%);
+  background-size: 260% 260%, 220% 220%;
+  filter: blur(1px) saturate(1.6);
+  animation: sweep 7.5s cubic-bezier(.62,0,.38,1) infinite;
+}
+.sweep::before,
+.sweep::after {
+  content: "";
+  position: absolute;
+  inset: -30vmax;
+  opacity: .55;
+  mix-blend-mode: screen;
+}
+.sweep::before {
+  background: conic-gradient(from 140deg at 50% 50%, transparent 0deg, rgba(125,249,255,.2) 34deg, transparent 76deg, rgba(255,79,216,.12) 148deg, transparent 210deg, rgba(124,255,178,.11) 286deg, transparent 360deg);
+  animation: turn 28s linear infinite;
+}
+.sweep::after {
+  background: radial-gradient(circle at 18% 22%, rgba(125,249,255,.2), transparent 28%), radial-gradient(circle at 82% 70%, rgba(255,79,216,.14), transparent 30%);
+  filter: blur(22px);
+  animation: breatheLight 8s ease-in-out infinite alternate;
+}
+.vignette {
+  z-index: 8;
+  pointer-events: none;
+  background:
+    radial-gradient(circle at 50% 48%, transparent 0, transparent 42%, rgba(1,2,7,.22) 62%, rgba(1,2,7,.86) 100%),
+    linear-gradient(180deg, rgba(1,2,7,.68) 0%, transparent 22%, transparent 72%, rgba(1,2,7,.78) 100%);
+}
+.centerpiece {
+  z-index: 4;
+  display: grid;
+  place-items: center;
+  pointer-events: none;
+  opacity: var(--heroFade);
+  transform: translateY(calc(var(--shipReveal) * -16vh)) scale(calc(1 - var(--shipReveal) * .08));
+  transition: opacity .12s linear;
+}
+.sigil-wrap {
+  --tiltX: 0deg;
+  --tiltY: 0deg;
+  --coreScale: 1;
+  width: min(76vmin, 720px);
+  height: min(76vmin, 720px);
+  opacity: .95;
+  transform: translateY(3vmin);
+  transform-style: preserve-3d;
+  animation: coreFloat 5.6s ease-in-out infinite alternate;
+}
+#sigil {
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+  filter:
+    drop-shadow(0 0 9px rgba(125,249,255,.82))
+    drop-shadow(0 0 22px rgba(61,109,255,.45))
+    drop-shadow(0 0 52px rgba(255,79,216,.24));
+  transform-origin: 50% 50%;
+  animation: spinCore 22s linear infinite;
+}
+#sigil .outer {
+  animation: spinReverse 36s linear infinite;
+  transform-origin: 50% 50%;
+}
+#sigil .inner {
+  animation: spinCore 14s linear infinite;
+  transform-origin: 50% 50%;
+}
+#sigil .pulse {
+  transform-origin: 50% 50%;
+  animation: pulseRing 2.9s ease-in-out infinite;
+}
+.copy {
+  z-index: 6;
+  pointer-events: none;
+  display: grid;
+  place-items: center;
+  padding: 7vh 4vw 13vh;
+  opacity: var(--heroFade);
+  transform: translateY(calc(var(--shipReveal) * -10vh));
+  transition: opacity .12s linear;
+}
+.title-stack {
+  width: min(94vw, 1200px);
+  text-align: center;
+  transform: translateY(-8vmin);
+}
+h1 {
+  margin: 0;
+  min-height: 1.04em;
+  font-size: clamp(4.4rem, 15.5vw, 12.8rem);
+  line-height: .84;
+  letter-spacing: 0;
+  font-weight: 950;
+  text-transform: uppercase;
+  color: #f8fdff;
+  text-shadow:
+    0 0 4px rgba(255,255,255,.98),
+    0 0 18px rgba(125,249,255,.92),
+    0 0 48px rgba(61,109,255,.72),
+    0 0 95px rgba(255,79,216,.38);
+  filter: saturate(1.18);
+}
+h1 span {
+  position: relative;
+  display: inline-block;
+  min-width: .58ch;
+  transform-origin: 50% 70%;
+  animation: glyphPulse 1.6s ease-in-out infinite;
+}
+h1 span:nth-child(2n) {
+  animation-delay: .12s;
+}
+h1 span:nth-child(3n) {
+  animation-delay: .24s;
+}
+.subtitle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: .72rem;
+  max-width: 100%;
+  margin-top: clamp(1.1rem, 2.8vw, 2.2rem);
+  padding: .56rem .86rem;
+  border: 1px solid rgba(125,249,255,.26);
+  background: rgba(3, 9, 22, .24);
+  box-shadow: inset 0 0 26px rgba(125,249,255,.08), 0 0 34px rgba(61,109,255,.14);
+  backdrop-filter: blur(10px);
+  font-family: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+  font-size: clamp(.78rem, 1.55vw, 1.15rem);
+  line-height: 1.2;
+  color: rgba(216, 252, 255, .92);
+  text-transform: uppercase;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  letter-spacing: 0;
+}
+.subtitle::before,
+.subtitle::after {
+  content: "";
+  width: .55rem;
+  height: .55rem;
+  border-radius: 50%;
+  background: var(--green);
+  box-shadow: 0 0 9px var(--green), 0 0 24px rgba(124,255,178,.8);
+  animation: beacon 1.4s ease-in-out infinite alternate;
+  flex: 0 0 auto;
+}
+.subtitle::after {
+  background: var(--pink);
+  box-shadow: 0 0 9px var(--pink), 0 0 24px rgba(255,79,216,.76);
+  animation-delay: .35s;
+}
+.hud {
+  position: fixed;
+  top: max(14px, 2.1vmin);
+  left: max(14px, 2.1vmin);
+  z-index: 9;
+  display: flex;
+  gap: .42rem;
+  flex-wrap: wrap;
+  max-width: min(92vw, 780px);
+  pointer-events: none;
+  font-family: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+  font-size: clamp(.64rem, 1vw, .82rem);
+  color: rgba(224, 253, 255, .84);
+  text-transform: uppercase;
+  letter-spacing: 0;
+  opacity: calc(.38 + var(--heroFade) * .62);
+}
+.hud span {
+  display: inline-flex;
+  align-items: center;
+  min-height: 1.9rem;
+  padding: .34rem .54rem;
+  border: 1px solid rgba(125,249,255,.25);
+  background: rgba(2, 9, 24, .42);
+  box-shadow: inset 0 0 18px rgba(125,249,255,.08), 0 0 18px rgba(61,109,255,.13);
+  backdrop-filter: blur(12px);
+}
+.hud span:first-child {
+  border-color: rgba(124,255,178,.38);
+  color: rgba(216,255,233,.9);
+}
+.hud span:nth-child(3) {
+  border-color: rgba(255,79,216,.34);
+  color: rgba(255,222,249,.9);
+}
+.marquee {
+  top: auto;
+  z-index: 9;
+  height: clamp(48px, 7vh, 72px);
+  overflow: hidden;
+  border-top: 1px solid rgba(125,249,255,.22);
+  border-bottom: 1px solid rgba(255,79,216,.1);
+  background:
+    linear-gradient(90deg, rgba(1,2,7,.92), rgba(4,12,30,.7), rgba(1,2,7,.92)),
+    linear-gradient(180deg, rgba(125,249,255,.08), transparent);
+  box-shadow: 0 -18px 44px rgba(0,0,0,.5), inset 0 1px 0 rgba(255,255,255,.08);
+  opacity: calc(.18 + var(--heroFade) * .82);
+}
+.marquee::before,
+.marquee::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 18vw;
+  z-index: 2;
+  pointer-events: none;
+}
+.marquee::before {
+  left: 0;
+  background: linear-gradient(90deg, #010207, transparent);
+}
+.marquee::after {
+  right: 0;
+  background: linear-gradient(270deg, #010207, transparent);
+}
+.marquee-track {
+  display: flex;
+  align-items: center;
+  width: max-content;
+  height: 100%;
+  animation: marquee 34s linear infinite;
+}
+.marquee-track span {
+  flex: 0 0 auto;
+  padding-inline: 1.1rem;
+  font-family: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+  font-size: clamp(.76rem, 1.35vw, 1rem);
+  color: rgba(218, 253, 255, .88);
+  text-shadow: 0 0 12px rgba(125,249,255,.85);
+  white-space: nowrap;
+  letter-spacing: 0;
+}
+.scanline {
+  position: fixed;
+  inset: 0;
+  z-index: 10;
+  pointer-events: none;
+  opacity: .14;
+  background: repeating-linear-gradient(180deg, transparent 0, transparent 3px, rgba(255,255,255,.14) 4px);
+  mix-blend-mode: overlay;
+}
+.ship-deck {
+  position: absolute;
+  top: 100vh;
+  left: 0;
+  z-index: 7;
+  width: 100%;
+  min-height: 125vh;
+  display: grid;
+  place-items: center;
+  padding: clamp(64px, 9vh, 120px) clamp(16px, 4vw, 72px) clamp(120px, 16vh, 190px);
+  pointer-events: auto;
+  opacity: var(--shipReveal);
+  transform: translateY(calc((1 - var(--shipReveal)) * 12vh));
+}
+.ship-deck::before,
+.ship-deck::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+.ship-deck::before {
+  background:
+    radial-gradient(ellipse at 50% 48%, rgba(125,249,255,.19), transparent 23%),
+    radial-gradient(ellipse at 50% 60%, rgba(255,79,216,.11), transparent 36%),
+    linear-gradient(180deg, transparent 0, rgba(3,8,24,.42) 26%, rgba(1,2,7,.76) 100%);
+  opacity: .9;
+}
+.ship-deck::after {
+  background:
+    linear-gradient(90deg, transparent 0 11%, rgba(125,249,255,.12) 11.15%, transparent 11.4% 88.6%, rgba(255,79,216,.1) 88.85%, transparent 89.1%),
+    linear-gradient(180deg, transparent 0 18%, rgba(125,249,255,.08) 18.1%, transparent 18.35% 84%, rgba(124,255,178,.07) 84.15%, transparent 84.4%);
+  filter: blur(.2px);
+  opacity: .72;
+}
+.ship-stage {
+  position: relative;
+  width: min(96vw, 1320px);
+  height: min(72vw, 760px);
+  min-height: 420px;
+  max-height: 78vh;
+  display: grid;
+  place-items: center;
+  perspective: 1400px;
+  isolation: isolate;
+}
+.ship-stage::before {
+  content: "";
+  position: absolute;
+  width: 86%;
+  height: 44%;
+  left: 7%;
+  top: 42%;
+  border-radius: 50%;
+  background:
+    radial-gradient(ellipse at center, rgba(125,249,255,.24), rgba(61,109,255,.08) 38%, transparent 71%),
+    conic-gradient(from 0deg, transparent, rgba(125,249,255,.24), transparent, rgba(255,79,216,.16), transparent);
+  filter: blur(16px);
+  opacity: calc(.34 + var(--shipReveal) * .48);
+  animation: dockHalo 7s linear infinite;
+}
+.ship-stage::after {
+  content: "";
+  position: absolute;
+  width: 82%;
+  height: 18%;
+  left: 9%;
+  bottom: 8%;
+  border-radius: 50%;
+  background: radial-gradient(ellipse at center, rgba(0,0,0,.9), rgba(0,0,0,.42) 45%, transparent 72%);
+  filter: blur(18px);
+  opacity: .78;
+  transform: rotateX(74deg);
+}
+.ship-canvas {
+  position: absolute;
+  inset: -6% -4%;
+  z-index: 3;
+  width: 108%;
+  height: 112%;
+  pointer-events: none;
+  mix-blend-mode: screen;
+  opacity: calc(.18 + var(--shipReveal) * .82);
+  filter:
+    drop-shadow(0 0 16px rgba(125,249,255,.7))
+    drop-shadow(0 0 48px rgba(61,109,255,.35));
+}
+.dock-ring {
+  position: absolute;
+  inset: 7% 9%;
+  border: 1px solid rgba(125,249,255,.26);
+  border-radius: 50%;
+  transform: rotateX(68deg) rotateZ(calc(var(--shipRoll) * -1));
+  box-shadow: 0 0 32px rgba(125,249,255,.22), inset 0 0 22px rgba(255,79,216,.12);
+  opacity: .78;
+  animation: ringPulse 3.8s ease-in-out infinite;
+}
+.dock-ring:nth-child(2) {
+  inset: 14% 16%;
+  border-color: rgba(255,79,216,.22);
+  animation-delay: -.8s;
+  transform: rotateX(68deg) rotateZ(calc(var(--shipRoll) * 1.25 + 42deg));
+}
+.dock-ring:nth-child(3) {
+  inset: 21% 24%;
+  border-color: rgba(124,255,178,.18);
+  animation-delay: -1.6s;
+  transform: rotateX(68deg) rotateZ(calc(var(--shipRoll) * -1.65 + 86deg));
+}
+.ship-model {
+  position: relative;
+  z-index: 2;
+  width: min(90vw, 1140px);
+  aspect-ratio: 16 / 8.8;
+  transform-style: preserve-3d;
+  transform:
+    translateY(calc((1 - var(--shipReveal)) * 90px))
+    rotateX(var(--shipTiltY))
+    rotateY(var(--shipTiltX))
+    rotateZ(var(--shipRoll))
+    scale(calc(.86 + var(--shipReveal) * .14));
+  filter:
+    drop-shadow(0 0 18px rgba(125,249,255,.55))
+    drop-shadow(0 0 46px rgba(61,109,255,.3))
+    drop-shadow(0 0 84px rgba(255,79,216,.18));
+  opacity: calc(.58 + (1 - var(--shipReveal)) * .32);
+  transition: transform .1s linear;
+}
+.ship-svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+.ship-svg .hullGlow {
+  animation: hullGlow 2.4s ease-in-out infinite alternate;
+}
+.ship-svg .engineFlame {
+  transform-origin: 17% 50%;
+  animation: flame 92ms linear infinite alternate;
+  opacity: calc(.44 + var(--engineBoost) * .56);
+}
+.ship-svg .engineCore {
+  animation: engineCore 1.1s ease-in-out infinite alternate;
+}
+.ship-svg .scanBeam {
+  animation: shipScan 3.2s cubic-bezier(.65,0,.35,1) infinite;
+}
+.ship-svg .antenna {
+  animation: antennaBlink 1.8s steps(2, end) infinite;
+}
+.ship-svg .micro {
+  animation: microFlicker 2.4s linear infinite;
+}
+.ship-svg .micro:nth-of-type(2n) {
+  animation-delay: -.8s;
+}
+.ship-svg .micro:nth-of-type(3n) {
+  animation-delay: -1.4s;
+}
+.ship-sparks {
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  pointer-events: none;
+  mix-blend-mode: screen;
+  background:
+    radial-gradient(circle at 12% 48%, rgba(125,249,255,calc(.1 + var(--engineBoost) * .18)), transparent 11%),
+    radial-gradient(circle at 19% 58%, rgba(255,79,216,calc(.08 + var(--engineBoost) * .12)), transparent 10%),
+    linear-gradient(88deg, rgba(125,249,255,calc(.04 + var(--engineBoost) * .08)), transparent 22%);
+  filter: blur(8px);
+  animation: engineWake .32s linear infinite alternate;
+}
+@keyframes dockHalo {
+  to { transform: rotate(360deg); }
+}
+@keyframes ringPulse {
+  0%, 100% { opacity: .36; filter: blur(0); }
+  50% { opacity: .86; filter: blur(.8px); }
+}
+@keyframes hullGlow {
+  from { opacity: .62; }
+  to { opacity: 1; }
+}
+@keyframes flame {
+  from { transform: scaleX(.78) scaleY(.86); filter: blur(.4px); }
+  to { transform: scaleX(1.22) scaleY(1.08); filter: blur(1.4px); }
+}
+@keyframes engineCore {
+  from { opacity: .7; }
+  to { opacity: 1; }
+}
+@keyframes engineWake {
+  from { transform: translateX(-1.4%) scaleX(.92); opacity: .64; }
+  to { transform: translateX(-3.2%) scaleX(1.08); opacity: 1; }
+}
+@keyframes shipScan {
+  from { transform: translateX(-54%); opacity: 0; }
+  16% { opacity: .76; }
+  62% { opacity: .44; }
+  to { transform: translateX(58%); opacity: 0; }
+}
+@keyframes antennaBlink {
+  50% { opacity: .28; }
+}
+@keyframes microFlicker {
+  0%, 92%, 100% { opacity: .72; }
+  94% { opacity: .18; }
+  96% { opacity: 1; }
+}
+@keyframes sweep {
+  0% { background-position: 135% 55%, -80% 30%; transform: translateX(-4vw) skewX(-8deg); }
+  50% { background-position: -35% 55%, 160% 70%; transform: translateX(4vw) skewX(-8deg); }
+  100% { background-position: -185% 55%, 320% 30%; transform: translateX(-4vw) skewX(-8deg); }
+}
+@keyframes turn {
+  to { transform: rotate(360deg); }
+}
+@keyframes breatheLight {
+  from { transform: scale(.95) rotate(-4deg); opacity: .36; }
+  to { transform: scale(1.08) rotate(4deg); opacity: .68; }
+}
+@keyframes spinCore {
+  to { transform: rotate(360deg); }
+}
+@keyframes spinReverse {
+  to { transform: rotate(-360deg); }
+}
+@keyframes pulseRing {
+  0%, 100% { transform: scale(.92); opacity: .34; }
+  50% { transform: scale(1.08); opacity: .96; }
+}
+@keyframes coreFloat {
+  from { transform: perspective(900px) translateY(4vmin) rotateX(var(--tiltY)) rotateY(var(--tiltX)) scale(calc(.965 * var(--coreScale))); opacity: .82; }
+  to { transform: perspective(900px) translateY(-1.5vmin) rotateX(var(--tiltY)) rotateY(var(--tiltX)) scale(calc(1.035 * var(--coreScale))); opacity: 1; }
+}
+@keyframes glyphPulse {
+  0%, 100% { transform: translateY(0) scale(1); opacity: .92; }
+  50% { transform: translateY(-.02em) scale(1.018); opacity: 1; }
+}
+@keyframes beacon {
+  from { transform: scale(.72); opacity: .58; }
+  to { transform: scale(1.18); opacity: 1; }
+}
+@keyframes marquee {
+  from { transform: translateX(0); }
+  to { transform: translateX(-50%); }
+}
+@keyframes gridDrift {
+  to { background-position: 7.5vmin 7.5vmin, 7.5vmin 7.5vmin; }
+}
+@media (max-width: 700px) {
+  .sigil-wrap {
+    width: min(98vmin, 540px);
+    height: min(98vmin, 540px);
+    transform: translateY(7vmin);
+  }
+  .title-stack {
+    transform: translateY(-12vmin);
+  }
+  h1 {
+    font-size: clamp(4rem, 24vw, 7.2rem);
+  }
+  .subtitle {
+    max-width: 92vw;
+    gap: .48rem;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .sweep,
+  #sigil,
+  #sigil .outer,
+  #sigil .inner,
+  #sigil .pulse,
+  .sigil-wrap,
+  .marquee-track,
+  .grid,
+  h1 span,
+  .subtitle::before,
+  .subtitle::after {
+    animation-duration: 999s;
+  }
+}
+</style>
+</head>
+<body>
+<canvas id="space"></canvas>
+<div class="grid"></div>
+<div class="sweep"></div>
+<div class="centerpiece" aria-hidden="true">
+  <div class="sigil-wrap">
+    <svg id="sigil" viewBox="0 0 600 600" role="img" aria-label="Rotating geometric signal">
+      <defs>
+        <linearGradient id="edge" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" stop-color="#7df9ff"/>
+          <stop offset="42%" stop-color="#3d6dff"/>
+          <stop offset="72%" stop-color="#ff4fd8"/>
+          <stop offset="100%" stop-color="#7cffb2"/>
+        </linearGradient>
+        <radialGradient id="coreGlow" cx="50%" cy="50%" r="50%">
+          <stop offset="0%" stop-color="#ffffff" stop-opacity=".9"/>
+          <stop offset="34%" stop-color="#7df9ff" stop-opacity=".34"/>
+          <stop offset="100%" stop-color="#3d6dff" stop-opacity="0"/>
+        </radialGradient>
+      </defs>
+      <circle cx="300" cy="300" r="64" fill="url(#coreGlow)" opacity=".9"/>
+      <g id="geometry"></g>
+    </svg>
+  </div>
+</div>
+<main class="copy">
+  <section class="title-stack" aria-label="Welcome">
+    <h1 id="headline"></h1>
+    <div class="subtitle" id="subtitle"></div>
+  </section>
+</main>
+<div class="hud" id="hud" aria-hidden="true">
+  <span id="fieldState"></span>
+  <span id="densityState"></span>
+  <span id="glitchState"></span>
+  <span id="scaleState"></span>
+</div>
+<div class="marquee" aria-hidden="true">
+  <div class="marquee-track" id="marqueeTrack"></div>
+</div>
+<section class="ship-deck" id="shipDeck" aria-label="Starship">
+  <div class="ship-stage" id="shipStage">
+    <div class="dock-ring"></div>
+    <div class="dock-ring"></div>
+    <div class="dock-ring"></div>
+    <canvas class="ship-canvas" id="shipCanvas"></canvas>
+    <div class="ship-model" id="shipModel">
+      <div class="ship-sparks"></div>
+      <svg class="ship-svg" viewBox="0 0 1600 900" role="img" aria-label="Deep space starship model">
+        <defs>
+          <linearGradient id="shipHull" x1="0%" y1="12%" x2="100%" y2="88%">
+            <stop offset="0%" stop-color="#f8fdff"/>
+            <stop offset="15%" stop-color="#86a2c7"/>
+            <stop offset="37%" stop-color="#233956"/>
+            <stop offset="62%" stop-color="#b7d8ff"/>
+            <stop offset="82%" stop-color="#26394f"/>
+            <stop offset="100%" stop-color="#eff9ff"/>
+          </linearGradient>
+          <linearGradient id="shipDark" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stop-color="#172236"/>
+            <stop offset="44%" stop-color="#060a16"/>
+            <stop offset="100%" stop-color="#2d4567"/>
+          </linearGradient>
+          <linearGradient id="shipEdge" x1="0%" y1="0%" x2="100%" y2="0%">
+            <stop offset="0%" stop-color="#7df9ff"/>
+            <stop offset="48%" stop-color="#ffffff"/>
+            <stop offset="100%" stop-color="#ff4fd8"/>
+          </linearGradient>
+          <linearGradient id="shipGlass" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stop-color="#ffffff" stop-opacity=".95"/>
+            <stop offset="18%" stop-color="#7df9ff" stop-opacity=".88"/>
+            <stop offset="54%" stop-color="#3159ff" stop-opacity=".58"/>
+            <stop offset="100%" stop-color="#081326" stop-opacity=".9"/>
+          </linearGradient>
+          <radialGradient id="engineHot" cx="50%" cy="50%" r="50%">
+            <stop offset="0%" stop-color="#ffffff"/>
+            <stop offset="18%" stop-color="#7df9ff"/>
+            <stop offset="52%" stop-color="#3159ff"/>
+            <stop offset="100%" stop-color="#ff4fd8" stop-opacity="0"/>
+          </radialGradient>
+          <radialGradient id="flameHot" cx="72%" cy="50%" r="58%">
+            <stop offset="0%" stop-color="#ffffff"/>
+            <stop offset="22%" stop-color="#7df9ff"/>
+            <stop offset="52%" stop-color="#3d6dff"/>
+            <stop offset="78%" stop-color="#ff4fd8" stop-opacity=".75"/>
+            <stop offset="100%" stop-color="#ff4fd8" stop-opacity="0"/>
+          </radialGradient>
+          <filter id="shipGlow" x="-30%" y="-40%" width="160%" height="180%">
+            <feGaussianBlur stdDeviation="4" result="blur"/>
+            <feColorMatrix in="blur" type="matrix" values="0 0 0 0 0.49 0 0 0 0 0.98 0 0 0 0 1 0 0 0 .95 0" result="cyan"/>
+            <feMerge>
+              <feMergeNode in="cyan"/>
+              <feMergeNode in="SourceGraphic"/>
+            </feMerge>
+          </filter>
+          <filter id="softShadow" x="-20%" y="-30%" width="150%" height="160%">
+            <feDropShadow dx="0" dy="16" stdDeviation="16" flood-color="#000000" flood-opacity=".62"/>
+          </filter>
+          <clipPath id="shipClip">
+            <path d="M154 452 C276 350 449 291 690 282 C906 274 1115 315 1393 405 C1470 430 1512 459 1513 480 C1514 499 1477 519 1395 540 C1118 611 903 646 687 630 C447 612 278 556 154 452 Z"/>
+          </clipPath>
+        </defs>
+        <g filter="url(#softShadow)">
+          <g class="engineFlame">
+            <path d="M156 408 C75 381 16 387 -72 430 C25 430 80 447 157 477 C80 509 25 528 -72 530 C16 573 75 579 156 552 C118 506 118 454 156 408 Z" fill="url(#flameHot)" opacity=".72"/>
+            <path d="M162 430 C94 415 46 425 -25 452 C54 457 101 466 162 486 C101 508 54 518 -25 520 C46 548 94 558 162 543 C141 506 141 467 162 430 Z" fill="#ffffff" opacity=".26"/>
+          </g>
+          <g>
+            <path d="M126 360 L313 308 L472 342 L351 434 Z" fill="url(#shipDark)" stroke="url(#shipEdge)" stroke-width="2" opacity=".92"/>
+            <path d="M126 544 L313 596 L472 562 L351 470 Z" fill="url(#shipDark)" stroke="url(#shipEdge)" stroke-width="2" opacity=".92"/>
+            <path d="M296 310 L512 175 L675 275 L458 352 Z" fill="#142139" stroke="#7df9ff" stroke-opacity=".5" stroke-width="2"/>
+            <path d="M296 594 L512 729 L675 629 L458 552 Z" fill="#101a2f" stroke="#ff4fd8" stroke-opacity=".44" stroke-width="2"/>
+            <path d="M492 203 L660 103 L790 276 L675 300 Z" fill="#203554" stroke="#7df9ff" stroke-opacity=".33" stroke-width="1.5"/>
+            <path d="M492 701 L660 801 L790 628 L675 604 Z" fill="#1a2b46" stroke="#ff4fd8" stroke-opacity=".34" stroke-width="1.5"/>
+            <path d="M154 452 C276 350 449 291 690 282 C906 274 1115 315 1393 405 C1470 430 1512 459 1513 480 C1514 499 1477 519 1395 540 C1118 611 903 646 687 630 C447 612 278 556 154 452 Z" fill="url(#shipHull)" stroke="#dffbff" stroke-opacity=".68" stroke-width="3"/>
+            <path d="M207 452 C344 380 515 344 733 341 C921 339 1115 374 1337 431 C1414 451 1458 469 1461 481 C1465 492 1419 505 1336 523 C1115 571 920 600 735 594 C516 587 345 540 207 452 Z" fill="#0c1425" opacity=".72"/>
+            <path class="hullGlow" d="M248 452 C383 401 533 377 727 377 C943 377 1129 412 1343 463 C1383 472 1383 487 1341 497 C1127 550 939 575 728 570 C531 565 383 525 248 452 Z" fill="none" stroke="url(#shipEdge)" stroke-width="2.6" opacity=".74"/>
+            <path d="M1142 393 C1255 411 1340 431 1465 471 C1494 480 1494 489 1465 499 C1338 535 1255 552 1142 570 C1193 515 1193 447 1142 393 Z" fill="#dcefff" opacity=".74"/>
+            <path d="M1260 430 L1486 476 L1260 524 C1293 493 1293 462 1260 430 Z" fill="#060b15" opacity=".8"/>
+            <path d="M1344 454 L1514 480 L1344 506 C1361 488 1361 472 1344 454 Z" fill="#eafaff" opacity=".94"/>
+            <path d="M1377 466 L1514 480 L1377 493 C1384 484 1384 475 1377 466 Z" fill="#7df9ff" opacity=".72"/>
+          </g>
+          <g clip-path="url(#shipClip)">
+            <path d="M180 356 C502 431 877 448 1436 420 L1467 454 C924 487 531 486 159 398 Z" fill="#ffffff" opacity=".12"/>
+            <path d="M186 542 C502 478 902 469 1450 515 L1418 548 C887 525 514 520 178 586 Z" fill="#000000" opacity=".26"/>
+            <path d="M277 405 L415 356 L592 372 L505 431 Z" fill="#dcecff" opacity=".42"/>
+            <path d="M284 500 L418 552 L594 536 L506 476 Z" fill="#101a2e" opacity=".54"/>
+            <path d="M577 374 L782 339 L918 379 L734 420 Z" fill="#e8f6ff" opacity=".34"/>
+            <path d="M575 532 L784 576 L922 525 L735 486 Z" fill="#0c1425" opacity=".58"/>
+            <path d="M889 383 L1043 376 L1144 412 L990 430 Z" fill="#e8f7ff" opacity=".31"/>
+            <path d="M888 522 L1044 528 L1144 492 L990 475 Z" fill="#091020" opacity=".62"/>
+            <path class="scanBeam" d="M124 304 L262 304 L1488 595 L1352 595 Z" fill="url(#shipEdge)" opacity=".18"/>
+          </g>
+          <g>
+            <path d="M646 337 C731 278 884 283 1011 345 C929 368 780 372 646 337 Z" fill="url(#shipGlass)" stroke="#dffcff" stroke-opacity=".76" stroke-width="2"/>
+            <path d="M706 337 C778 302 884 307 960 344 C885 354 787 354 706 337 Z" fill="#ffffff" opacity=".23"/>
+            <path d="M660 344 L1000 351" stroke="#7df9ff" stroke-width="1.4" opacity=".68"/>
+            <path d="M710 316 L740 354 M790 299 L807 361 M883 306 L873 359 M949 327 L926 359" stroke="#ffffff" stroke-width="1" opacity=".36"/>
+          </g>
+          <g>
+            <ellipse cx="177" cy="452" rx="86" ry="96" fill="#111b2d" stroke="url(#shipEdge)" stroke-width="3"/>
+            <ellipse class="engineCore" cx="174" cy="452" rx="57" ry="66" fill="url(#engineHot)" opacity=".94"/>
+            <ellipse cx="174" cy="452" rx="29" ry="37" fill="#ffffff" opacity=".78"/>
+            <ellipse cx="248" cy="371" rx="50" ry="42" fill="#111b2d" stroke="#7df9ff" stroke-opacity=".62" stroke-width="2"/>
+            <ellipse class="engineCore" cx="246" cy="371" rx="31" ry="26" fill="url(#engineHot)" opacity=".76"/>
+            <ellipse cx="248" cy="533" rx="50" ry="42" fill="#111b2d" stroke="#ff4fd8" stroke-opacity=".5" stroke-width="2"/>
+            <ellipse class="engineCore" cx="246" cy="533" rx="31" ry="26" fill="url(#engineHot)" opacity=".7"/>
+            <path d="M191 343 C259 335 325 346 386 379 L370 401 C311 374 254 366 193 374 Z" fill="#dffaff" opacity=".22"/>
+            <path d="M191 561 C259 569 325 558 386 525 L370 503 C311 530 254 538 193 530 Z" fill="#dffaff" opacity=".15"/>
+          </g>
+          <g stroke-linecap="round" stroke-linejoin="round">
+            <path d="M370 402 L615 392 L707 423 L508 444 Z" fill="#0b1323" stroke="#7df9ff" stroke-opacity=".44" stroke-width="1.5"/>
+            <path d="M370 502 L615 512 L707 481 L508 460 Z" fill="#07101e" stroke="#ff4fd8" stroke-opacity=".36" stroke-width="1.5"/>
+            <path d="M729 424 L1012 408 L1121 445 L855 454 Z" fill="#0b1425" stroke="#7df9ff" stroke-opacity=".36" stroke-width="1.2"/>
+            <path d="M729 480 L1012 496 L1121 459 L855 450 Z" fill="#070f1d" stroke="#ff4fd8" stroke-opacity=".28" stroke-width="1.2"/>
+            <path d="M1110 445 L1288 450 L1349 475 L1163 475 Z" fill="#0f1a2e" stroke="#ffffff" stroke-opacity=".28" stroke-width="1.1"/>
+            <path d="M1110 459 L1288 454 L1349 481 L1163 482 Z" fill="#07101e" stroke="#7df9ff" stroke-opacity=".28" stroke-width="1.1"/>
+          </g>
+          <g opacity=".95">
+            <rect class="micro" x="425" y="416" width="38" height="7" rx="3" fill="#7df9ff"/>
+            <rect class="micro" x="482" y="413" width="27" height="6" rx="3" fill="#ff4fd8"/>
+            <rect class="micro" x="538" y="409" width="52" height="6" rx="3" fill="#7cffb2"/>
+            <rect class="micro" x="628" y="411" width="34" height="5" rx="2" fill="#ffffff"/>
+            <rect class="micro" x="770" y="432" width="40" height="6" rx="3" fill="#7df9ff"/>
+            <rect class="micro" x="838" y="429" width="62" height="6" rx="3" fill="#ffffff"/>
+            <rect class="micro" x="942" y="421" width="31" height="6" rx="3" fill="#ff4fd8"/>
+            <rect class="micro" x="1034" y="431" width="72" height="5" rx="2" fill="#7cffb2"/>
+            <rect class="micro" x="1210" y="459" width="44" height="5" rx="2" fill="#7df9ff"/>
+            <rect class="micro" x="1292" y="466" width="30" height="5" rx="2" fill="#ffffff"/>
+            <circle class="micro" cx="704" cy="455" r="5" fill="#7cffb2"/>
+            <circle class="micro" cx="1092" cy="455" r="4" fill="#ff4fd8"/>
+            <circle class="micro" cx="1170" cy="465" r="3.5" fill="#7df9ff"/>
+          </g>
+          <g fill="none" stroke="#dffcff" stroke-opacity=".27" stroke-width="1.15">
+            <path d="M325 389 L463 452 L324 516"/>
+            <path d="M421 354 L521 452 L421 552"/>
+            <path d="M563 331 L650 452 L563 573"/>
+            <path d="M742 319 L808 452 L742 585"/>
+            <path d="M914 336 L954 452 L914 568"/>
+            <path d="M1078 371 L1098 452 L1078 533"/>
+            <path d="M1197 399 L1212 452 L1197 505"/>
+            <path d="M1312 428 L1326 477 L1312 527"/>
+            <path d="M260 452 L1414 452"/>
+            <path d="M310 421 C589 467 918 470 1318 445"/>
+            <path d="M310 483 C589 437 918 434 1318 459"/>
+          </g>
+          <g filter="url(#shipGlow)" fill="none" stroke-linecap="round">
+            <path d="M248 292 C449 246 657 236 895 271" stroke="#7df9ff" stroke-width="1.4" opacity=".44"/>
+            <path d="M250 612 C449 658 657 668 895 633" stroke="#ff4fd8" stroke-width="1.4" opacity=".4"/>
+            <path d="M1015 304 C1196 338 1350 386 1495 466" stroke="#ffffff" stroke-width="1.2" opacity=".38"/>
+            <path d="M1015 600 C1196 566 1350 518 1495 488" stroke="#7df9ff" stroke-width="1.2" opacity=".28"/>
+          </g>
+          <g class="antenna" stroke="url(#shipEdge)" stroke-width="2" stroke-linecap="round" fill="none">
+            <path d="M888 287 L922 218 L955 283"/>
+            <circle cx="922" cy="218" r="7" fill="#7df9ff" stroke="none"/>
+            <path d="M986 302 L1046 248 L1031 319"/>
+            <circle cx="1046" cy="248" r="5" fill="#ff4fd8" stroke="none"/>
+          </g>
+          <g>
+            <path d="M543 602 L624 752 L715 634 Z" fill="#172842" stroke="#ff4fd8" stroke-opacity=".44" stroke-width="1.5"/>
+            <path d="M544 302 L624 152 L715 270 Z" fill="#1f3657" stroke="#7df9ff" stroke-opacity=".44" stroke-width="1.5"/>
+            <path d="M617 722 L676 638 L710 652 L650 750 Z" fill="#d9f8ff" opacity=".16"/>
+            <path d="M617 182 L676 266 L710 252 L650 154 Z" fill="#d9f8ff" opacity=".22"/>
+            <path d="M784 615 L878 714 L969 599 Z" fill="#14233c" stroke="#ff4fd8" stroke-opacity=".36" stroke-width="1.3"/>
+            <path d="M784 289 L878 190 L969 305 Z" fill="#1f3658" stroke="#7df9ff" stroke-opacity=".36" stroke-width="1.3"/>
+          </g>
+          <g fill="#ffffff" opacity=".34">
+            <path d="M446 450 L456 439 L468 450 L456 462 Z"/>
+            <path d="M612 451 L624 437 L638 451 L624 465 Z"/>
+            <path d="M797 452 L808 440 L820 452 L808 464 Z"/>
+            <path d="M982 452 L991 442 L1002 452 L991 462 Z"/>
+            <path d="M1166 455 L1174 446 L1183 455 L1174 464 Z"/>
+          </g>
+        </g>
+      </svg>
+    </div>
+  </div>
+</section>
+<div class="vignette"></div>
+<div class="scanline"></div>
+<script>
+(() => {
+  const canvas = document.getElementById("space");
+  const ctx = canvas.getContext("2d", { alpha: false });
+  const headline = document.getElementById("headline");
+  const subtitle = document.getElementById("subtitle");
+  const geometry = document.getElementById("geometry");
+  const marqueeTrack = document.getElementById("marqueeTrack");
+  const sigilWrap = document.querySelector(".sigil-wrap");
+  const shipDeck = document.getElementById("shipDeck");
+  const shipStage = document.getElementById("shipStage");
+  const shipModel = document.getElementById("shipModel");
+  const shipCanvas = document.getElementById("shipCanvas");
+  const shipCtx = shipCanvas.getContext("2d");
+  const fieldState = document.getElementById("fieldState");
+  const densityState = document.getElementById("densityState");
+  const glitchState = document.getElementById("glitchState");
+  const scaleState = document.getElementById("scaleState");
+  const glyphs = "01ABCDEFGHIJKLMNOPQRSTUVWXYZ#$%&*+-/<=>?[]{}";
+  const titleText = "WELCOME";
+  const subtitleText = "DEEP SPACE RELAY // SIGNAL LOCKED // ENTER THE VOID";
+  const marquee = [
+    "ORBITAL RELAY ONLINE",
+    "QUANTUM GATE OPEN",
+    "NEBULA FIELD STABLE",
+    "STARFORGE VECTOR SYNC",
+    "DARK MATTER INDEX RISING",
+    "HELIOSTATIC ARRAY ACTIVE",
+    "COSMIC SIGNAL CLEAR",
+    "GRAVITY LENS CALIBRATED",
+    "PHOTON STREAM NOMINAL",
+    "SINGULARITY EDGE MAPPED"
+  ];
+  let w = 0;
+  let h = 0;
+  let dpr = 1;
+  let frame = 0;
+  let last = performance.now();
+  let particles = [];
+  let dust = [];
+  let columns = [];
+  let trails = [];
+  let ripples = [];
+  let singularities = [];
+  let comets = [];
+  let fieldMode = "repel";
+  let densityLevel = 1;
+  let glitchBoost = 1;
+  let coreScale = 1;
+  let shipReveal = 0;
+  let scrollVelocity = 0;
+  let lastScrollY = scrollY;
+  let shipDpr = 1;
+  let shipW = 0;
+  let shipH = 0;
+  let shipFaces = [];
+  let nebula = document.createElement("canvas");
+  let nebulaCtx = nebula.getContext("2d");
+  let mouse = {
+    x: innerWidth * .5,
+    y: innerHeight * .5,
+    px: innerWidth * .5,
+    py: innerHeight * .5,
+    down: false,
+    active: false,
+    shift: false,
+    lastMove: 0
+  };
+  const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+  const rand = (a, b) => a + Math.random() * (b - a);
+  const pick = s => s[(Math.random() * s.length) | 0];
+  const TAU = Math.PI * 2;
+  const rgb = (c, f, a) => `rgba(${clamp(c[0] * f, 0, 255)},${clamp(c[1] * f, 0, 255)},${clamp(c[2] * f, 0, 255)},${a})`;
+  class Particle {
+    constructor(i) {
+      this.i = i;
+      this.reset(true);
+    }
+    reset(anywhere) {
+      this.x = anywhere ? Math.random() * w : rand(-40, w + 40);
+      this.y = anywhere ? Math.random() * h : rand(-40, h + 40);
+      this.vx = rand(-.16, .16);
+      this.vy = rand(-.16, .16);
+      this.r = rand(.75, 2.45);
+      this.mass = rand(.65, 1.9);
+      this.hue = rand(178, 325);
+      this.energy = rand(.35, 1);
+      this.seed = rand(0, 999);
+    }
+    update(t) {
+      const idle = performance.now() - mouse.lastMove > 1900;
+      const targetX = idle ? w * .5 + Math.cos(t * .00025) * w * .16 : mouse.x;
+      const targetY = idle ? h * .5 + Math.sin(t * .00022) * h * .12 : mouse.y;
+      const radius = mouse.down ? Math.min(w, h) * .48 : Math.min(w, h) * (mouse.shift ? .34 : .27);
+      const dx = targetX - this.x;
+      const dy = targetY - this.y;
+      const dist = Math.hypot(dx, dy) || 1;
+      if (dist < radius) {
+        const fall = (1 - dist / radius) ** 2;
+        const modeForce = fieldMode === "gravity" ? 1.18 : -1.15;
+        const polarity = mouse.down ? 1.65 : idle ? .18 : mouse.shift ? -1.8 : modeForce;
+        const force = fall * polarity / this.mass;
+        this.vx += dx / dist * force;
+        this.vy += dy / dist * force;
+        this.vx += -dy / dist * fall * (mouse.down || fieldMode === "gravity" ? .62 : .16);
+        this.vy += dx / dist * fall * (mouse.down || fieldMode === "gravity" ? .62 : .16);
+      }
+      for (const s of singularities) {
+        const sx = s.x - this.x;
+        const sy = s.y - this.y;
+        const sd = Math.hypot(sx, sy) || 1;
+        if (sd < s.radius) {
+          const fall = (1 - sd / s.radius) ** 2 * s.life;
+          this.vx += sx / sd * fall * s.pull;
+          this.vy += sy / sd * fall * s.pull;
+          this.vx += -sy / sd * fall * s.spin;
+          this.vy += sx / sd * fall * s.spin;
+        }
+      }
+      this.vx += Math.cos(t * .00033 + this.seed) * .008;
+      this.vy += Math.sin(t * .00031 + this.seed * 1.7) * .008;
+      this.vx *= .982;
+      this.vy *= .982;
+      const speed = Math.hypot(this.vx, this.vy);
+      const max = mouse.down ? 4.8 : 3.1;
+      if (speed > max) {
+        this.vx = this.vx / speed * max;
+        this.vy = this.vy / speed * max;
+      }
+      this.x += this.vx;
+      this.y += this.vy;
+      if (this.x < -60) this.x = w + 60;
+      if (this.x > w + 60) this.x = -60;
+      if (this.y < -60) this.y = h + 60;
+      if (this.y > h + 60) this.y = -60;
+    }
+  }
+  function resize() {
+    dpr = Math.min(2, window.devicePixelRatio || 1);
+    w = Math.max(1, innerWidth);
+    h = Math.max(1, innerHeight);
+    canvas.width = Math.floor(w * dpr);
+    canvas.height = Math.floor(h * dpr);
+    canvas.style.width = w + "px";
+    canvas.style.height = h + "px";
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    nebula.width = Math.floor(w * dpr);
+    nebula.height = Math.floor(h * dpr);
+    nebulaCtx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    buildNebula();
+    const count = particleTarget();
+    particles = Array.from({ length: count }, (_, i) => new Particle(i));
+    dust = Array.from({ length: Math.floor(count * .42) }, () => ({
+      x: Math.random() * w,
+      y: Math.random() * h,
+      z: rand(.08, .82),
+      hue: rand(180, 330),
+      a: rand(.08, .34)
+    }));
+    columns = Array.from({ length: Math.ceil(w / 18) }, (_, i) => ({
+      x: i * 18 + rand(-2, 2),
+      y: rand(-h, 0),
+      speed: rand(.45, 1.65),
+      size: rand(11, 17),
+      alpha: rand(.06, .22),
+      drift: rand(-.04, .04)
+    }));
+    updateHud();
+    updateScrollState();
+    resizeShipCanvas(true);
+  }
+  function resizeShipCanvas(force) {
+    const rect = shipCanvas.getBoundingClientRect();
+    const nw = Math.max(1, Math.floor(rect.width));
+    const nh = Math.max(1, Math.floor(rect.height));
+    if (!force && nw === shipW && nh === shipH) return;
+    shipDpr = Math.min(2, window.devicePixelRatio || 1);
+    shipW = nw;
+    shipH = nh;
+    shipCanvas.width = Math.floor(shipW * shipDpr);
+    shipCanvas.height = Math.floor(shipH * shipDpr);
+    shipCtx.setTransform(shipDpr, 0, 0, shipDpr, 0, 0);
+  }
+  function particleTarget() {
+    return clamp(Math.floor(w * h / 5200 * densityLevel), 260, 820);
+  }
+  function setDensity(next) {
+    densityLevel = next;
+    const target = particleTarget();
+    if (particles.length < target) {
+      const start = particles.length;
+      for (let i = start; i < target; i++) particles.push(new Particle(i));
+    } else if (particles.length > target) {
+      particles.length = target;
+    }
+    particles.forEach((p, i) => p.i = i);
+    updateHud();
+  }
+  function updateHud() {
+    fieldState.textContent = "FIELD " + (fieldMode === "gravity" ? "GRAVITY" : "REPEL");
+    densityState.textContent = "DENSITY " + densityLevel.toFixed(1);
+    glitchState.textContent = "GLITCH " + glitchBoost.toFixed(1);
+    scaleState.textContent = "CORE " + coreScale.toFixed(2);
+    sigilWrap.style.setProperty("--coreScale", coreScale.toFixed(3));
+  }
+  function updateScrollState() {
+    const y = scrollY || document.documentElement.scrollTop || 0;
+    const dy = y - lastScrollY;
+    lastScrollY = y;
+    scrollVelocity = scrollVelocity * .82 + dy * .18;
+    const start = h * .28;
+    const end = h * 1.02;
+    shipReveal = clamp((y - start) / Math.max(1, end - start), 0, 1);
+    const heroFade = clamp(1 - shipReveal * 1.18, 0, 1);
+    const roll = Math.sin((y / Math.max(1, h)) * Math.PI) * 2.8 + scrollVelocity * .012;
+    const boost = clamp(.42 + shipReveal * .62 + Math.abs(scrollVelocity) * .012 + (mouse.down ? .28 : 0), .32, 1.35);
+    document.body.style.setProperty("--shipReveal", shipReveal.toFixed(3));
+    document.body.style.setProperty("--heroFade", heroFade.toFixed(3));
+    document.body.style.setProperty("--shipRoll", roll.toFixed(2) + "deg");
+    document.body.style.setProperty("--engineBoost", boost.toFixed(3));
+  }
+  function buildNebula() {
+    nebulaCtx.clearRect(0, 0, w, h);
+    nebulaCtx.fillStyle = "#010207";
+    nebulaCtx.fillRect(0, 0, w, h);
+    nebulaCtx.globalCompositeOperation = "lighter";
+    for (let i = 0; i < 34; i++) {
+      const x = rand(-w * .15, w * 1.15);
+      const y = rand(-h * .1, h * 1.1);
+      const r = rand(Math.min(w, h) * .12, Math.max(w, h) * .44);
+      const hue = rand(178, 318);
+      const g = nebulaCtx.createRadialGradient(x, y, 0, x, y, r);
+      g.addColorStop(0, `hsla(${hue}, 100%, 64%, ${rand(.035, .105)})`);
+      g.addColorStop(.42, `hsla(${hue + rand(-35, 35)}, 100%, 52%, ${rand(.014, .045)})`);
+      g.addColorStop(1, "rgba(0,0,0,0)");
+      nebulaCtx.fillStyle = g;
+      nebulaCtx.beginPath();
+      nebulaCtx.arc(x, y, r, 0, TAU);
+      nebulaCtx.fill();
+    }
+    nebulaCtx.globalCompositeOperation = "source-over";
+  }
+  function drawMatrix(t) {
+    ctx.save();
+    ctx.globalCompositeOperation = "screen";
+    ctx.font = "14px Consolas, monospace";
+    ctx.textAlign = "center";
+    for (const c of columns) {
+      c.y += c.speed * (1 + Math.sin(t * .0007 + c.x) * .2);
+      c.x += c.drift;
+      if (c.y > h + 160) {
+        c.y = rand(-360, -40);
+        c.speed = rand(.45, 1.65);
+        c.alpha = rand(.06, .22);
+      }
+      const rows = 12;
+      for (let j = 0; j < rows; j++) {
+        const y = c.y - j * c.size * 1.15;
+        if (y < -30 || y > h + 30) continue;
+        const a = c.alpha * (1 - j / rows) ** 1.55;
+        ctx.fillStyle = `rgba(${j < 2 ? 220 : 125}, ${j < 2 ? 255 : 249}, ${j < 2 ? 245 : 255}, ${a})`;
+        ctx.fillText(pick(glyphs), c.x, y);
+      }
+    }
+    ctx.restore();
+  }
+  function drawDust(t) {
+    ctx.save();
+    ctx.globalCompositeOperation = "screen";
+    for (const s of dust) {
+      s.x += s.z * .035 + Math.cos(t * .0001 + s.y) * .012;
+      s.y += Math.sin(t * .00013 + s.x) * .018;
+      if (s.x > w + 10) s.x = -10;
+      const twinkle = .55 + Math.sin(t * .002 + s.x * .02 + s.y * .017) * .45;
+      ctx.fillStyle = `hsla(${s.hue}, 100%, ${68 + twinkle * 20}%, ${s.a * twinkle})`;
+      ctx.beginPath();
+      ctx.arc(s.x, s.y, s.z * 1.55, 0, TAU);
+      ctx.fill();
+    }
+    ctx.restore();
+  }
+  function buildGrid(cell) {
+    const grid = new Map();
+    for (const p of particles) {
+      const gx = Math.floor(p.x / cell);
+      const gy = Math.floor(p.y / cell);
+      const key = gx + "," + gy;
+      let bucket = grid.get(key);
+      if (!bucket) {
+        bucket = [];
+        grid.set(key, bucket);
+      }
+      bucket.push(p);
+    }
+    return grid;
+  }
+  function drawParticles(t) {
+    const cell = 96;
+    const grid = buildGrid(cell);
+    ctx.save();
+    ctx.globalCompositeOperation = "screen";
+    ctx.lineWidth = 1;
+    for (const p of particles) {
+      let links = 0;
+      const gx = Math.floor(p.x / cell);
+      const gy = Math.floor(p.y / cell);
+      for (let ix = -1; ix <= 1; ix++) {
+        for (let iy = -1; iy <= 1; iy++) {
+          const bucket = grid.get((gx + ix) + "," + (gy + iy));
+          if (!bucket) continue;
+          for (const q of bucket) {
+            if (q.i <= p.i) continue;
+            const dx = p.x - q.x;
+            const dy = p.y - q.y;
+            const d = Math.hypot(dx, dy);
+            if (d < cell && links < 5) {
+              const a = (1 - d / cell) * .16 * (p.energy + q.energy);
+              ctx.strokeStyle = `hsla(${(p.hue + q.hue) * .5}, 100%, 66%, ${a})`;
+              ctx.beginPath();
+              ctx.moveTo(p.x, p.y);
+              ctx.lineTo(q.x, q.y);
+              ctx.stroke();
+              links++;
+            }
+          }
+        }
+      }
+    }
+    for (const p of particles) {
+      p.update(t);
+      const pulse = .68 + Math.sin(t * .004 + p.seed) * .32;
+      const r = p.r * (1 + pulse * .42);
+      ctx.fillStyle = `hsla(${p.hue}, 100%, ${62 + pulse * 24}%, ${.2 + p.energy * .62})`;
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, r, 0, TAU);
+      ctx.fill();
+      if (p.energy > .72) {
+        const g = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, r * 7);
+        g.addColorStop(0, `hsla(${p.hue}, 100%, 72%, ${.13 * pulse})`);
+        g.addColorStop(1, "rgba(0,0,0,0)");
+        ctx.fillStyle = g;
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, r * 7, 0, TAU);
+        ctx.fill();
+      }
+    }
+    ctx.restore();
+  }
+  function addRipple(x, y, power, hue) {
+    ripples.push({
+      x,
+      y,
+      r: 2,
+      life: 1,
+      width: rand(12, 28) * power,
+      speed: rand(7, 14) * power,
+      hue
+    });
+    if (ripples.length > 42) ripples.splice(0, ripples.length - 42);
+  }
+  function addSingularity(x, y) {
+    singularities.push({
+      x,
+      y,
+      age: 0,
+      life: 1,
+      radius: Math.min(w, h) * rand(.24, .42),
+      pull: rand(2.2, 3.6),
+      spin: rand(2.8, 4.6),
+      hue: rand(185, 300)
+    });
+    addRipple(x, y, 2.8, rand(180, 310));
+    for (let i = 0; i < 9; i++) spawnComet(x, y, true);
+  }
+  function spawnComet(tx, ty, fast) {
+    const edge = (Math.random() * 4) | 0;
+    let x = rand(0, w);
+    let y = rand(0, h);
+    if (edge === 0) y = -60;
+    if (edge === 1) x = w + 60;
+    if (edge === 2) y = h + 60;
+    if (edge === 3) x = -60;
+    const dx = tx - x;
+    const dy = ty - y;
+    const d = Math.hypot(dx, dy) || 1;
+    const s = fast ? rand(7, 13) : rand(3, 7);
+    comets.push({
+      x,
+      y,
+      px: x,
+      py: y,
+      vx: dx / d * s + rand(-1.2, 1.2),
+      vy: dy / d * s + rand(-1.2, 1.2),
+      life: 1,
+      decay: fast ? rand(.008, .014) : rand(.004, .009),
+      size: rand(1.2, 2.8),
+      hue: rand(176, 318)
+    });
+    if (comets.length > 90) comets.splice(0, comets.length - 90);
+  }
+  function drawRipples() {
+    ctx.save();
+    ctx.globalCompositeOperation = "screen";
+    for (let i = ripples.length - 1; i >= 0; i--) {
+      const r = ripples[i];
+      r.r += r.speed;
+      r.life -= .014;
+      if (r.life <= 0) {
+        ripples.splice(i, 1);
+        continue;
+      }
+      for (let j = 0; j < 3; j++) {
+        ctx.strokeStyle = `hsla(${r.hue + j * 28}, 100%, ${70 + j * 5}%, ${r.life * (.32 - j * .07)})`;
+        ctx.lineWidth = r.width * r.life / (j + 1);
+        ctx.beginPath();
+        ctx.arc(r.x, r.y, r.r + j * 18, 0, TAU);
+        ctx.stroke();
+      }
+    }
+    ctx.restore();
+  }
+  function drawSingularities() {
+    ctx.save();
+    ctx.globalCompositeOperation = "lighter";
+    for (let i = singularities.length - 1; i >= 0; i--) {
+      const s = singularities[i];
+      s.age += .012;
+      s.life = Math.max(0, 1 - s.age);
+      if (s.life <= 0) {
+        singularities.splice(i, 1);
+        continue;
+      }
+      const pulse = .72 + Math.sin(performance.now() * .012 + i) * .28;
+      const g = ctx.createRadialGradient(s.x, s.y, 0, s.x, s.y, s.radius * .38);
+      g.addColorStop(0, `hsla(${s.hue}, 100%, 85%, ${.45 * s.life})`);
+      g.addColorStop(.14, `hsla(${s.hue + 42}, 100%, 55%, ${.22 * s.life})`);
+      g.addColorStop(.42, `rgba(0,0,0,${.72 * s.life})`);
+      g.addColorStop(1, "rgba(0,0,0,0)");
+      ctx.fillStyle = g;
+      ctx.beginPath();
+      ctx.arc(s.x, s.y, s.radius * (.28 + pulse * .06), 0, TAU);
+      ctx.fill();
+      ctx.strokeStyle = `hsla(${s.hue + 80}, 100%, 72%, ${.48 * s.life})`;
+      ctx.lineWidth = 1.4;
+      for (let k = 0; k < 5; k++) {
+        ctx.beginPath();
+        ctx.ellipse(s.x, s.y, s.radius * (.18 + k * .038), s.radius * (.05 + k * .02), performance.now() * .0015 + k * .72, 0, TAU);
+        ctx.stroke();
+      }
+    }
+    ctx.restore();
+  }
+  function drawComets() {
+    ctx.save();
+    ctx.globalCompositeOperation = "lighter";
+    for (let i = comets.length - 1; i >= 0; i--) {
+      const c = comets[i];
+      c.life -= c.decay;
+      if (c.life <= 0 || c.x < -180 || c.x > w + 180 || c.y < -180 || c.y > h + 180) {
+        comets.splice(i, 1);
+        continue;
+      }
+      c.px = c.x;
+      c.py = c.y;
+      if (mouse.active) {
+        const dx = mouse.x - c.x;
+        const dy = mouse.y - c.y;
+        const d = Math.hypot(dx, dy) || 1;
+        if (d < 280) {
+          c.vx += dx / d * .035;
+          c.vy += dy / d * .035;
+        }
+      }
+      c.vx *= .998;
+      c.vy *= .998;
+      c.x += c.vx;
+      c.y += c.vy;
+      const tail = Math.hypot(c.vx, c.vy) * 8;
+      const a = Math.atan2(c.vy, c.vx);
+      const tx = c.x - Math.cos(a) * tail;
+      const ty = c.y - Math.sin(a) * tail;
+      const g = ctx.createLinearGradient(c.x, c.y, tx, ty);
+      g.addColorStop(0, `hsla(${c.hue}, 100%, 82%, ${.86 * c.life})`);
+      g.addColorStop(.35, `hsla(${c.hue + 34}, 100%, 58%, ${.28 * c.life})`);
+      g.addColorStop(1, "rgba(0,0,0,0)");
+      ctx.strokeStyle = g;
+      ctx.lineWidth = c.size * (2.2 + c.life);
+      ctx.beginPath();
+      ctx.moveTo(c.x, c.y);
+      ctx.lineTo(tx, ty);
+      ctx.stroke();
+      ctx.fillStyle = `hsla(${c.hue}, 100%, 82%, ${c.life})`;
+      ctx.beginPath();
+      ctx.arc(c.x, c.y, c.size * 2.4, 0, TAU);
+      ctx.fill();
+    }
+    ctx.restore();
+  }
+  function buildShipMesh() {
+    shipFaces = [];
+    const add = (pts, color, edge, alpha = 1, emissive = 0) => shipFaces.push({ pts, color, edge, alpha, emissive });
+    const ring = (x, ry, rz, n = 12) => Array.from({ length: n }, (_, i) => {
+      const a = i / n * TAU;
+      return [x, Math.sin(a) * ry, Math.cos(a) * rz];
+    });
+    const stations = [
+      [-7.2, .72, .58],
+      [-6.1, 1.14, .9],
+      [-4.0, 1.38, 1.08],
+      [-1.0, 1.25, 1.0],
+      [2.3, .95, .78],
+      [5.2, .46, .42],
+      [7.3, .07, .08]
+    ];
+    const rings = stations.map(s => ring(...s));
+    const palette = [[70, 144, 190], [178, 224, 255], [36, 61, 94], [122, 249, 255], [255, 79, 216]];
+    for (let i = 0; i < rings.length - 1; i++) {
+      for (let j = 0; j < rings[i].length; j++) {
+        const k = (j + 1) % rings[i].length;
+        const top = j > 2 && j < 9;
+        const side = j === 0 || j === 11 || j === 5 || j === 6;
+        add([rings[i][j], rings[i][k], rings[i + 1][k], rings[i + 1][j]], top ? palette[1] : side ? palette[0] : palette[2], top ? [210, 252, 255] : [125, 249, 255], .86, top ? .08 : 0);
+      }
+    }
+    const rear = rings[0];
+    const rearCenter = [-7.55, 0, 0];
+    for (let j = 0; j < rear.length; j++) add([rearCenter, rear[(j + 1) % rear.length], rear[j]], [20, 38, 66], [125, 249, 255], .72, .25);
+    const noseBase = rings[rings.length - 2];
+    const nose = [7.9, 0, 0];
+    for (let j = 0; j < noseBase.length; j++) add([noseBase[j], noseBase[(j + 1) % noseBase.length], nose], [218, 246, 255], [255, 255, 255], .92, .12);
+    add([[-5.9, -.62, .38], [-2.8, -1.02, .5], [1.8, -.88, .38], [3.2, -.34, .18], [-2.6, -.34, .38]], [105, 218, 255], [230, 255, 255], .84, .7);
+    add([[-5.9, -.62, -.38], [-2.8, -1.02, -.5], [1.8, -.88, -.38], [3.2, -.34, -.18], [-2.6, -.34, -.38]], [62, 108, 220], [125, 249, 255], .56, .28);
+    add([[-5.2, .72, .58], [-1.2, .62, 1.08], [2.7, .44, 4.12], [-3.8, .18, 2.4]], [36, 62, 104], [125, 249, 255], .82, .08);
+    add([[-5.2, .72, -.58], [-1.2, .62, -1.08], [2.7, .44, -4.12], [-3.8, .18, -2.4]], [42, 52, 98], [255, 79, 216], .78, .1);
+    add([[-4.7, -.7, .42], [-1.4, -2.5, .36], [1.5, -.82, .3]], [52, 92, 144], [125, 249, 255], .82, .14);
+    add([[-4.7, .72, .42], [-1.4, 2.38, .36], [1.5, .82, .3]], [39, 72, 116], [255, 79, 216], .78, .1);
+    add([[-3.9, -.66, -.4], [-.8, -2.2, -.34], [1.4, -.78, -.28]], [35, 58, 102], [125, 249, 255], .64, .08);
+    add([[-3.9, .66, -.4], [-.8, 2.1, -.34], [1.4, .78, -.28]], [32, 48, 88], [255, 79, 216], .6, .08);
+    for (let z of [-.72, .72]) {
+      add([[-6.85, -.62, z], [-6.05, -.54, z * 1.38], [-5.78, .54, z * 1.38], [-6.85, .62, z]], [18, 34, 62], z > 0 ? [125, 249, 255] : [255, 79, 216], .86, .22);
+      add([[-6.9, -.34, z * 1.03], [-6.25, -.27, z * 1.62], [-6.1, .27, z * 1.62], [-6.9, .34, z * 1.03]], [115, 236, 255], [255, 255, 255], .58, .82);
+    }
+    for (let i = 0; i < 16; i++) {
+      const x = rand(-4.7, 4.6);
+      const y = rand(-.42, .48);
+      const z = i % 2 ? .98 : -.98;
+      const sx = rand(.18, .42);
+      add([[x, y - .025, z], [x + sx, y - .035, z * 1.01], [x + sx, y + .035, z * 1.01], [x, y + .025, z]], i % 3 ? [125, 249, 255] : [255, 79, 216], [255, 255, 255], .62, .9);
+    }
+  }
+  function rotate3(p, yaw, pitch, roll) {
+    let [x, y, z] = p;
+    let c = Math.cos(yaw), s = Math.sin(yaw);
+    [x, z] = [x * c + z * s, -x * s + z * c];
+    c = Math.cos(pitch);
+    s = Math.sin(pitch);
+    [y, z] = [y * c - z * s, y * s + z * c];
+    c = Math.cos(roll);
+    s = Math.sin(roll);
+    [x, y] = [x * c - y * s, x * s + y * c];
+    return { x, y, z };
+  }
+  function project3(p, scale, cx, cy) {
+    const camera = 12.5;
+    const f = camera / (camera - p.z);
+    return { x: cx + p.x * scale * f, y: cy + p.y * scale * f, z: p.z, f };
+  }
+  function faceNormal(a, b, c) {
+    const ux = b.x - a.x, uy = b.y - a.y, uz = b.z - a.z;
+    const vx = c.x - a.x, vy = c.y - a.y, vz = c.z - a.z;
+    const nx = uy * vz - uz * vy;
+    const ny = uz * vx - ux * vz;
+    const nz = ux * vy - uy * vx;
+    const d = Math.hypot(nx, ny, nz) || 1;
+    return { x: nx / d, y: ny / d, z: nz / d };
+  }
+  function drawShipMesh(t) {
+    resizeShipCanvas(false);
+    shipCtx.clearRect(0, 0, shipW, shipH);
+    if (shipReveal < .08) return;
+    const rect = shipCanvas.getBoundingClientRect();
+    if (rect.bottom < 0 || rect.top > h) return;
+    const nx = mouse.active ? (mouse.x / w - .5) * 2 : Math.sin(t * .00031) * .65;
+    const ny = mouse.active ? (mouse.y / h - .5) * 2 : Math.cos(t * .00027) * .42;
+    const yaw = .28 + nx * .34 + Math.sin(t * .00042) * .08;
+    const pitch = -.08 - ny * .18 + Math.cos(t * .00035) * .05;
+    const roll = Math.sin(t * .0005) * .055 + scrollVelocity * .0007;
+    const scale = Math.min(shipH * (.094 + shipReveal * .01), shipW * (.056 + shipReveal * .004));
+    const cx = shipW * .5;
+    const cy = shipH * (.52 + Math.sin(t * .0005) * .012);
+    const light = { x: -.42, y: -.68, z: .72 };
+    const faces = shipFaces.map(face => {
+      const rot = face.pts.map(p => rotate3(p, yaw, pitch, roll));
+      const pts = rot.map(p => project3(p, scale, cx, cy));
+      const n = faceNormal(rot[0], rot[1], rot[2]);
+      const depth = rot.reduce((a, p) => a + p.z, 0) / rot.length;
+      const shine = Math.max(.12, n.x * light.x + n.y * light.y + n.z * light.z);
+      return { face, pts, rot, depth, shine };
+    }).sort((a, b) => a.depth - b.depth);
+    shipCtx.save();
+    shipCtx.globalAlpha = shipReveal;
+    shipCtx.lineJoin = "round";
+    shipCtx.lineCap = "round";
+    const rear = project3(rotate3([-7.15, 0, 0], yaw, pitch, roll), scale, cx, cy);
+    const flame = shipCtx.createRadialGradient(rear.x - scale * .45, rear.y, 0, rear.x - scale * 1.75, rear.y, scale * (1.1 + shipReveal * .65));
+    flame.addColorStop(0, "rgba(255,255,255,.9)");
+    flame.addColorStop(.18, "rgba(125,249,255,.72)");
+    flame.addColorStop(.48, "rgba(61,109,255,.32)");
+    flame.addColorStop(.78, "rgba(255,79,216,.18)");
+    flame.addColorStop(1, "rgba(255,79,216,0)");
+    shipCtx.globalCompositeOperation = "lighter";
+    shipCtx.fillStyle = flame;
+    shipCtx.beginPath();
+    shipCtx.ellipse(rear.x - scale * .86, rear.y, scale * (1.28 + Math.sin(t * .033) * .18), scale * (.42 + Math.cos(t * .04) * .08), Math.sin(t * .002) * .08, 0, TAU);
+    shipCtx.fill();
+    shipCtx.globalCompositeOperation = "source-over";
+    for (const f of faces) {
+      const boost = f.face.emissive ? 1.2 + f.face.emissive * .9 + Math.sin(t * .006 + f.depth) * .12 : .42 + f.shine * .98 + Math.max(0, f.depth) * .035;
+      shipCtx.beginPath();
+      f.pts.forEach((p, i) => i ? shipCtx.lineTo(p.x, p.y) : shipCtx.moveTo(p.x, p.y));
+      shipCtx.closePath();
+      shipCtx.fillStyle = rgb(f.face.color, boost, f.face.alpha);
+      shipCtx.fill();
+      shipCtx.strokeStyle = rgb(f.face.edge, 1.05 + f.face.emissive * .45, .18 + f.face.emissive * .34);
+      shipCtx.lineWidth = Math.max(.45, scale * .008 * (1 + f.face.emissive));
+      shipCtx.stroke();
+    }
+    shipCtx.globalCompositeOperation = "lighter";
+    for (let i = 0; i < 3; i++) {
+      const p = project3(rotate3([-6.9, (i - 1) * .48, i === 1 ? 0 : .7], yaw, pitch, roll), scale, cx, cy);
+      const g = shipCtx.createRadialGradient(p.x, p.y, 0, p.x, p.y, scale * (.34 + i * .05));
+      g.addColorStop(0, "rgba(255,255,255,.9)");
+      g.addColorStop(.22, "rgba(125,249,255,.82)");
+      g.addColorStop(.72, "rgba(61,109,255,.2)");
+      g.addColorStop(1, "rgba(61,109,255,0)");
+      shipCtx.fillStyle = g;
+      shipCtx.beginPath();
+      shipCtx.arc(p.x, p.y, scale * (.22 - i * .025), 0, TAU);
+      shipCtx.fill();
+    }
+    for (let i = 0; i < 36; i++) {
+      const a = i / 36 * TAU + t * .0014;
+      const p1 = project3(rotate3([rand(-6.5, 6.8), Math.sin(a) * rand(.9, 2.6), Math.cos(a) * rand(1.2, 4.8)], yaw, pitch, roll), scale, cx, cy);
+      shipCtx.fillStyle = `hsla(${180 + i * 5}, 100%, 72%, ${.06 + shipReveal * .12})`;
+      shipCtx.beginPath();
+      shipCtx.arc(p1.x, p1.y, rand(.7, 1.8), 0, TAU);
+      shipCtx.fill();
+    }
+    shipCtx.restore();
+  }
+  function emitShipWake(t) {
+    if (shipReveal < .45) return;
+    const rect = shipStage.getBoundingClientRect();
+    if (rect.bottom < 0 || rect.top > h) return;
+    const engineX = rect.left + rect.width * .15;
+    const engineY = rect.top + rect.height * .52;
+    const boost = .8 + shipReveal * 1.4 + Math.abs(scrollVelocity) * .018;
+    if (frame % 2 === 0) {
+      addTrail(engineX + rand(-26, 18), engineY + rand(-68, 68), -rand(18, 42) * boost, rand(-7, 7), false);
+    }
+    if (frame % 11 === 0) {
+      addRipple(engineX + rand(-30, 20), engineY + rand(-40, 40), .72 + shipReveal * .7, rand(178, 318));
+    }
+    if (frame % 46 === 0) {
+      spawnComet(rect.left + rect.width * rand(.46, .88), rect.top + rect.height * rand(.18, .78), true);
+    }
+    const scanX = rect.left + rect.width * (.23 + Math.sin(t * .0011) * .18);
+    const scanY = rect.top + rect.height * (.5 + Math.cos(t * .0013) * .16);
+    if (frame % 5 === 0) addTrail(scanX, scanY, rand(-5, 5), rand(-5, 5), false);
+  }
+  function drawCursorField(t) {
+    if (!mouse.active || performance.now() - mouse.lastMove > 900) return;
+    ctx.save();
+    ctx.globalCompositeOperation = "screen";
+    const radius = Math.min(w, h) * .32;
+    const hue = fieldMode === "gravity" ? 142 : mouse.shift ? 325 : 188;
+    const halo = ctx.createRadialGradient(mouse.x, mouse.y, 0, mouse.x, mouse.y, radius);
+    halo.addColorStop(0, `hsla(${hue}, 100%, 68%, .18)`);
+    halo.addColorStop(.34, `hsla(${hue + 42}, 100%, 56%, .055)`);
+    halo.addColorStop(1, "rgba(0,0,0,0)");
+    ctx.fillStyle = halo;
+    ctx.beginPath();
+    ctx.arc(mouse.x, mouse.y, radius, 0, TAU);
+    ctx.fill();
+    ctx.lineWidth = .8;
+    for (let i = 0; i < particles.length; i += 3) {
+      const p = particles[i];
+      const dx = p.x - mouse.x;
+      const dy = p.y - mouse.y;
+      const d = Math.hypot(dx, dy);
+      if (d < radius) {
+        const a = (1 - d / radius) ** 1.5;
+        const mx = (p.x + mouse.x) * .5 + Math.sin(t * .003 + i) * 18;
+        const my = (p.y + mouse.y) * .5 + Math.cos(t * .003 + i) * 18;
+        ctx.strokeStyle = `hsla(${hue + a * 70}, 100%, 72%, ${a * .23})`;
+        ctx.beginPath();
+        ctx.moveTo(mouse.x, mouse.y);
+        ctx.quadraticCurveTo(mx, my, p.x, p.y);
+        ctx.stroke();
+      }
+    }
+    ctx.restore();
+  }
+  function addTrail(x, y, vx, vy, burst) {
+    const n = burst ? 14 : 4;
+    for (let i = 0; i < n; i++) {
+      const a = Math.atan2(vy, vx) + rand(-1.8, 1.8);
+      const s = rand(.2, burst ? 4.2 : 2.2);
+      trails.push({
+        x: x + rand(-5, 5),
+        y: y + rand(-5, 5),
+        vx: Math.cos(a) * s + vx * .018,
+        vy: Math.sin(a) * s + vy * .018,
+        life: 1,
+        decay: rand(.012, burst ? .034 : .026),
+        size: rand(2, burst ? 9 : 6),
+        hue: rand(176, 322)
+      });
+    }
+    if (trails.length > 520) trails.splice(0, trails.length - 520);
+  }
+  function drawTrails() {
+    ctx.save();
+    ctx.globalCompositeOperation = "lighter";
+    for (let i = trails.length - 1; i >= 0; i--) {
+      const s = trails[i];
+      s.life -= s.decay;
+      if (s.life <= 0) {
+        trails.splice(i, 1);
+        continue;
+      }
+      s.vx *= .986;
+      s.vy *= .986;
+      s.x += s.vx;
+      s.y += s.vy;
+      const r = s.size * s.life * 3.2;
+      const g = ctx.createRadialGradient(s.x, s.y, 0, s.x, s.y, r);
+      g.addColorStop(0, `hsla(${s.hue}, 100%, 74%, ${.54 * s.life})`);
+      g.addColorStop(.32, `hsla(${s.hue + 30}, 100%, 58%, ${.22 * s.life})`);
+      g.addColorStop(1, "rgba(0,0,0,0)");
+      ctx.fillStyle = g;
+      ctx.beginPath();
+      ctx.arc(s.x, s.y, r, 0, TAU);
+      ctx.fill();
+    }
+    ctx.restore();
+  }
+  function drawLens(t) {
+    const cx = w * .5 + Math.cos(t * .00019) * w * .055;
+    const cy = h * .5 + Math.sin(t * .00023) * h * .048;
+    ctx.save();
+    ctx.globalCompositeOperation = "screen";
+    ctx.translate(cx, cy);
+    ctx.rotate(t * .00018);
+    for (let i = 0; i < 5; i++) {
+      const r = Math.min(w, h) * (.11 + i * .075);
+      ctx.strokeStyle = `rgba(${i % 2 ? 255 : 125}, ${i % 2 ? 79 : 249}, ${i % 2 ? 216 : 255}, ${.11 - i * .014})`;
+      ctx.lineWidth = 1.2 + i * .28;
+      ctx.beginPath();
+      ctx.ellipse(0, 0, r * 1.58, r * .52, i * .44, 0, TAU);
+      ctx.stroke();
+    }
+    ctx.restore();
+  }
+  function draw(t) {
+    const dt = Math.min(40, t - last);
+    last = t;
+    frame++;
+    ctx.globalCompositeOperation = "source-over";
+    ctx.fillStyle = "rgba(1,2,7,.82)";
+    ctx.fillRect(0, 0, w, h);
+    ctx.save();
+    ctx.globalAlpha = .72 + Math.sin(t * .00018) * .12;
+    ctx.drawImage(nebula, 0, 0, w, h);
+    ctx.restore();
+    drawDust(t);
+    drawMatrix(t);
+    drawLens(t);
+    emitShipWake(t);
+    drawRipples();
+    drawSingularities();
+    drawComets();
+    drawParticles(t);
+    drawCursorField(t);
+    drawTrails();
+    drawShipMesh(t);
+    const fpsPulse = clamp(dt / 16.67, .55, 2.4);
+    if (!mouse.active && frame % Math.floor(6 * fpsPulse) === 0) {
+      addTrail(w * .5 + Math.cos(t * .0009) * w * .18, h * .5 + Math.sin(t * .0011) * h * .12, 0, 0, false);
+    }
+    requestAnimationFrame(draw);
+  }
+  function decodeInto(node, text, speed, hold) {
+    node.innerHTML = "";
+    const spans = Array.from(text, ch => {
+      const span = document.createElement("span");
+      span.textContent = ch === " " ? "\u00a0" : "";
+      node.appendChild(span);
+      return span;
+    });
+    let i = 0;
+    function reveal() {
+      if (i >= spans.length) return;
+      const span = spans[i];
+      const final = text[i];
+      let tick = 0;
+      const total = final === " " ? 1 : hold + Math.floor(Math.random() * hold);
+      const jitter = () => {
+        if (final === " ") {
+          span.textContent = "\u00a0";
+          i++;
+          setTimeout(reveal, speed);
+          return;
+        }
+        span.textContent = tick >= total ? final : pick(glyphs);
+        span.style.color = tick >= total ? "" : `hsl(${rand(155, 315)}, 100%, 74%)`;
+        span.style.textShadow = tick >= total ? "" : "0 0 18px currentColor, 0 0 42px currentColor";
+        if (tick++ >= total) {
+          span.style.color = "";
+          span.style.textShadow = "";
+          i++;
+          setTimeout(reveal, speed);
+        } else {
+          requestAnimationFrame(jitter);
+        }
+      };
+      jitter();
+    }
+    reveal();
+  }
+  function liveGlitch() {
+    const spans = Array.from(headline.children);
+    if (!spans.length) return;
+    const amount = Math.max(1, Math.round((Math.random() > .78 ? 2 : 1) * glitchBoost));
+    for (let i = 0; i < amount; i++) {
+      const idx = (Math.random() * spans.length) | 0;
+      const span = spans[idx];
+      const original = titleText[idx];
+      if (!original || original === " ") continue;
+      span.textContent = pick(glyphs);
+      span.style.color = `hsl(${rand(170, 315)}, 100%, 78%)`;
+      setTimeout(() => {
+        span.textContent = original;
+        span.style.color = "";
+      }, rand(45, 120));
+    }
+    setTimeout(liveGlitch, rand(850, 2200) / glitchBoost);
+  }
+  function buildGeometry() {
+    const ns = "http://www.w3.org/2000/svg";
+    const make = (name, attrs, parent = geometry) => {
+      const el = document.createElementNS(ns, name);
+      for (const [k, v] of Object.entries(attrs)) el.setAttribute(k, v);
+      parent.appendChild(el);
+      return el;
+    };
+    const group = make("g", { fill: "none", "stroke-linecap": "round", "stroke-linejoin": "round" });
+    const outer = make("g", { class: "outer" }, group);
+    const inner = make("g", { class: "inner" }, group);
+    const pulse = make("g", { class: "pulse" }, group);
+    const polyPoints = (n, r, rot = 0) => Array.from({ length: n }, (_, i) => {
+      const a = rot + i / n * TAU - Math.PI / 2;
+      return `${300 + Math.cos(a) * r},${300 + Math.sin(a) * r}`;
+    }).join(" ");
+    [258, 222, 178, 126].forEach((r, i) => {
+      make("polygon", { points: polyPoints(6 + i * 2, r, i * .13), stroke: "url(#edge)", "stroke-width": 1.4 + i * .22, opacity: .42 + i * .1 }, i % 2 ? inner : outer);
+    });
+    [286, 242, 202, 154, 92].forEach((r, i) => {
+      make("circle", { cx: 300, cy: 300, r, stroke: "url(#edge)", "stroke-width": i === 0 ? 1 : .72, opacity: .13 + i * .075 }, i < 2 ? pulse : group);
+    });
+    for (let i = 0; i < 36; i++) {
+      const a = i / 36 * TAU;
+      const r1 = i % 3 === 0 ? 78 : 118;
+      const r2 = i % 2 === 0 ? 286 : 236;
+      make("line", {
+        x1: 300 + Math.cos(a) * r1,
+        y1: 300 + Math.sin(a) * r1,
+        x2: 300 + Math.cos(a) * r2,
+        y2: 300 + Math.sin(a) * r2,
+        stroke: "url(#edge)",
+        "stroke-width": i % 6 === 0 ? 1.1 : .55,
+        opacity: i % 6 === 0 ? .46 : .2
+      }, i % 2 ? outer : inner);
+    }
+    for (let i = 0; i < 18; i++) {
+      const a = i / 18 * TAU + .12;
+      const b = a + TAU / 6;
+      const c = a + TAU / 3;
+      const pts = [
+        `${300 + Math.cos(a) * 74},${300 + Math.sin(a) * 74}`,
+        `${300 + Math.cos(b) * 198},${300 + Math.sin(b) * 198}`,
+        `${300 + Math.cos(c) * 122},${300 + Math.sin(c) * 122}`
+      ].join(" ");
+      make("polyline", { points: pts, stroke: i % 2 ? "#7df9ff" : "#ff4fd8", "stroke-width": .72, opacity: .24 }, inner);
+    }
+    for (let i = 0; i < 12; i++) {
+      const a = i / 12 * TAU;
+      const x = 300 + Math.cos(a) * 302;
+      const y = 300 + Math.sin(a) * 302;
+      make("circle", { cx: x, cy: y, r: i % 3 === 0 ? 4.5 : 2.7, fill: i % 2 ? "#ff4fd8" : "#7df9ff", opacity: .72 }, pulse);
+    }
+    make("polygon", { points: polyPoints(3, 88, Math.PI), stroke: "#ffffff", "stroke-width": 1.2, opacity: .68 }, group);
+    make("polygon", { points: polyPoints(3, 88, 0), stroke: "#7cffb2", "stroke-width": 1.2, opacity: .58 }, group);
+  }
+  function buildMarquee() {
+    const text = marquee.map(v => `${v} //`).join(" ");
+    for (let i = 0; i < 2; i++) {
+      const span = document.createElement("span");
+      span.textContent = text;
+      marqueeTrack.appendChild(span);
+    }
+  }
+  addEventListener("resize", resize, { passive: true });
+  addEventListener("scroll", updateScrollState, { passive: true });
+  addEventListener("pointermove", e => {
+    mouse.active = true;
+    mouse.px = mouse.x;
+    mouse.py = mouse.y;
+    mouse.x = e.clientX;
+    mouse.y = e.clientY;
+    mouse.shift = e.shiftKey;
+    mouse.lastMove = performance.now();
+    const nx = (mouse.x / w - .5) * 2;
+    const ny = (mouse.y / h - .5) * 2;
+    sigilWrap.style.setProperty("--tiltX", (nx * 10).toFixed(2) + "deg");
+    sigilWrap.style.setProperty("--tiltY", (-ny * 10).toFixed(2) + "deg");
+    document.body.style.setProperty("--shipTiltX", (nx * (shipReveal > .3 ? 14 : 7)).toFixed(2) + "deg");
+    document.body.style.setProperty("--shipTiltY", (-ny * (shipReveal > .3 ? 9 : 4)).toFixed(2) + "deg");
+    addTrail(mouse.x, mouse.y, mouse.x - mouse.px, mouse.y - mouse.py, false);
+  }, { passive: true });
+  addEventListener("pointerdown", e => {
+    mouse.down = true;
+    mouse.shift = e.shiftKey;
+    mouse.x = e.clientX;
+    mouse.y = e.clientY;
+    mouse.lastMove = performance.now();
+    addTrail(mouse.x, mouse.y, 0, 0, true);
+    addRipple(mouse.x, mouse.y, 1.45, rand(175, 320));
+    for (let i = 0; i < 4; i++) spawnComet(mouse.x, mouse.y, false);
+    updateScrollState();
+  }, { passive: true });
+  addEventListener("pointerup", e => {
+    mouse.down = false;
+    addTrail(e.clientX, e.clientY, 0, 0, true);
+    addRipple(e.clientX, e.clientY, 1.1, rand(175, 320));
+    updateScrollState();
+  }, { passive: true });
+  addEventListener("dblclick", e => {
+    addSingularity(e.clientX, e.clientY);
+  }, { passive: true });
+  addEventListener("wheel", e => {
+    e.preventDefault();
+    coreScale = clamp(coreScale + (e.deltaY < 0 ? .06 : -.06), .72, 1.58);
+    updateHud();
+    addRipple(mouse.x, mouse.y, .82, coreScale > 1 ? 148 : 285);
+    for (let i = 0; i < 3; i++) spawnComet(mouse.x, mouse.y, true);
+  }, { passive: false });
+  addEventListener("keydown", e => {
+    const k = e.key.toLowerCase();
+    if (e.code === "Space") {
+      e.preventDefault();
+      fieldMode = fieldMode === "gravity" ? "repel" : "gravity";
+      updateHud();
+      addRipple(mouse.x, mouse.y, 1.8, fieldMode === "gravity" ? 142 : 196);
+    }
+    if (k === "d") setDensity(densityLevel >= 1.8 ? .8 : densityLevel + .5);
+    if (k === "x") {
+      glitchBoost = glitchBoost >= 3 ? 1 : glitchBoost + .5;
+      updateHud();
+      addRipple(mouse.x, mouse.y, 1.2, 305);
+    }
+    if (k === "c") {
+      for (let i = 0; i < 16; i++) spawnComet(mouse.x, mouse.y, true);
+      addRipple(mouse.x, mouse.y, 1.35, 198);
+    }
+    if (k === "g") addSingularity(mouse.x, mouse.y);
+  });
+  addEventListener("keyup", e => {
+    mouse.shift = e.shiftKey;
+  });
+  addEventListener("pointerleave", () => {
+    mouse.active = false;
+    mouse.down = false;
+  }, { passive: true });
+  buildGeometry();
+  buildShipMesh();
+  buildMarquee();
+  resize();
+  updateScrollState();
+  decodeInto(headline, titleText, 48, 8);
+  setTimeout(() => decodeInto(subtitle, subtitleText, 12, 3), 520);
+  setTimeout(liveGlitch, 3200);
+  requestAnimationFrame(draw);
+})();
+</script>
+</body>
+</html>
